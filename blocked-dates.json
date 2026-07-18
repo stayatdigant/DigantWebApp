@@ -22,5 +22,11 @@
     "start": "2026-07-06",
     "end": "2026-07-07",
     "allDay": true
+  },
+  {
+    "title": "Direct",
+    "start": "2026-07-07",
+    "end": "2026-07-08",
+    "allDay": true
   }
 ]

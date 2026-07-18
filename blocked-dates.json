@@ -1,16 +1,1 @@
-[
-  {
-    "title": "Room 3",
-    "start": "2026-07-17",
-    "end": "2026-07-18",
-    "allDay": true,
-    "className": "room-3"
-  },
-  {
-    "title": "Full Bungalow (Room 3 Booked)",
-    "start": "2026-07-17",
-    "end": "2026-07-18",
-    "allDay": true,
-    "className": "room-full"
-  }
-]
+[]

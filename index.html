@@ -2,59 +2,162 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Master Calendar Manager</title>
+  <!-- Added viewport-fit=cover for modern notched phones -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Bungalow Manager</title>
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.min.css" rel="stylesheet">
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 15px; background: #f4f6f8; }
-    .container { max-width: 950px; margin: 0 auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    :root {
+      --bg-color: #f4f6f8;
+      --card-bg: white;
+      --text-main: #333;
+      --primary: #007bff;
+    }
+    
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+      margin: 20px; 
+      background: var(--bg-color); 
+      color: var(--text-main);
+      -webkit-tap-highlight-color: transparent; /* Removes blue tap flash on mobile */
+    }
+    
+    .container { 
+      max-width: 950px; 
+      margin: 0 auto; 
+      background: var(--card-bg); 
+      padding: 20px; 
+      border-radius: 16px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+    }
+    
     .config-bar { display: flex; gap: 10px; margin-bottom: 20px; background: #f9f9f9; padding: 15px; border-radius: 8px; }
-    input, select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
+    
+    /* Improved Touch Targets for Mobile (Minimum 44px height) */
+    input, select, button { 
+      padding: 12px; 
+      border: 1px solid #ddd; 
+      border-radius: 8px; 
+      font-size: 16px; /* Prevents auto-zoom on iPhones */
+      min-height: 44px;
+    }
     input { flex-grow: 1; }
-    button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; }
-    button:hover { background: #0056b3; }
+    select { background-color: white; font-weight: 500; }
+    
+    button { 
+      background: var(--primary); 
+      color: white; 
+      border: none; 
+      cursor: pointer; 
+      font-weight: 600; 
+      transition: opacity 0.2s;
+    }
+    button:active { opacity: 0.7; }
     
     /* Room Color Schemes */
     .room-2 { background-color: #3498db !important; border-color: #2980b9 !important; }
     .room-3 { background-color: #9b59b6 !important; border-color: #8e44ad !important; }
     .room-4 { background-color: #e67e22 !important; border-color: #d35400 !important; }
     .room-full { background-color: #e74c3c !important; border-color: #c0392b !important; }
-    .fc-event { font-weight: bold; color: white !important; padding: 2px 4px; border-radius: 3px; font-size: 12px; }
+    
+    .fc-event { 
+      font-weight: 600; 
+      color: white !important; 
+      padding: 2px 4px; 
+      border-radius: 4px; 
+      font-size: 11px;
+      border: none !important;
+    }
 
-    /* Clean Mobile Modal Custom Styling */
-    .modal-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; }
-    .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .modal-content h3 { margin-top: 0; margin-bottom: 15px; }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-    .btn-cancel { background: #bdc3c7; }
-    .btn-cancel:hover { background: #95a5a6; }
+    /* Modal Backdrop */
+    .modal-backdrop { 
+      display: none; 
+      position: fixed; 
+      top: 0; left: 0; 
+      width: 100%; height: 100%; 
+      background: rgba(0,0,0,0.4); 
+      backdrop-filter: blur(2px);
+      z-index: 9999; 
+      justify-content: center; 
+      align-items: center; 
+    }
+
+    /* Desktop Modal Style */
+    .modal-content { 
+      background: white; 
+      padding: 24px; 
+      border-radius: 16px; 
+      width: 90%; 
+      max-width: 400px; 
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2); 
+      box-sizing: border-box;
+    }
+    .modal-content h3 { margin: 0 0 5px 0; font-size: 20px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+    .btn-cancel { background: #f1f3f5; color: #495057; }
+
+    /* =========================================
+       MOBILE-SPECIFIC OVERRIDES
+       ========================================= */
+    @media (max-width: 600px) {
+      body { margin: 0; background: var(--card-bg); }
+      .container { padding: 10px; border-radius: 0; box-shadow: none; }
+      
+      h2 { font-size: 1.5rem; margin-top: 10px; }
+      
+      /* Reorganize Calendar Header for narrow screens */
+      .fc .fc-toolbar { flex-direction: column; gap: 12px; }
+      .fc .fc-toolbar-title { font-size: 1.25em !important; }
+      
+      /* Make day numbers slightly smaller */
+      .fc .fc-daygrid-day-number { font-size: 14px; padding: 4px !important; }
+
+      /* Convert Modal to a Native-feeling Bottom Sheet */
+      .modal-backdrop { align-items: flex-end; }
+      .modal-content {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 24px 24px 0 0;
+        padding: 24px 24px 40px 24px; /* Extra bottom padding for home-bar */
+        animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .modal-actions { flex-direction: column-reverse; } /* Stack buttons on mobile */
+      .modal-actions button { width: 100%; height: 50px; font-size: 16px; }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2 style="margin-top: 0; text-align: center;">Bungalow Booking Manager</h2>
+  <h2 style="text-align: center;">Bungalow Manager</h2>
   
-  <div class="config-bar">
-    <input type="password" id="gh-token" placeholder="Paste GitHub Token to enable blocking">
-    <button onclick="saveToken()">Save Config</button>
+  <div class="config-bar" id="configBar">
+    <input type="password" id="gh-token" placeholder="Paste GitHub Token here">
+    <button onclick="saveToken()">Save</button>
   </div>
 
   <div id="calendar"></div>
 </div>
 
-<!-- Mobile Friendly Dropdown Modal -->
+<!-- Mobile Friendly Bottom-Sheet Modal -->
 <div id="bookingModal" class="modal-backdrop">
   <div class="modal-content">
     <h3>Block Dates</h3>
-    <p id="modalDateRange" style="color: #666; margin-bottom: 15px; font-weight: 500;"></p>
-    <label for="roomSelect" style="display: block; margin-bottom: 8px; font-weight: bold;">Select Option:</label>
-    <select id="roomSelect" style="width: 100%; box-sizing: border-box;">
+    <p id="modalDateRange" style="color: #666; margin-bottom: 20px; font-weight: 500; font-size: 14px;"></p>
+    
+    <label for="roomSelect" style="display: block; margin-bottom: 10px; font-weight: 600; color: #444;">Select Property Option:</label>
+    <select id="roomSelect" style="width: 100%; box-sizing: border-box; margin-bottom: 10px;">
       <option value="Room 2">Room 2</option>
       <option value="Room 3">Room 3</option>
       <option value="Room 4">Room 4</option>
       <option value="Full Bungalow">Full Bungalow</option>
     </select>
+    
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">Cancel</button>
       <button onclick="confirmBlock()">Confirm Block</button>
@@ -64,7 +167,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 <script>
-  // ⚠️ UPDATE THESE VALUES TO MATCH YOUR ARTIFACTS
+  // ⚠️ UPDATE THESE VALUES AGAIN
   const GH_OWNER = 'stayatdigant';
   const GH_REPO = 'DigantWebApp';
   const FILE_PATH = 'blocked-dates.json';
@@ -75,7 +178,14 @@
   let selectedInfo = null;
 
   document.addEventListener('DOMContentLoaded', async function() {
-    document.getElementById('gh-token').value = localStorage.getItem('gh_token') || '';
+    const savedToken = localStorage.getItem('gh_token');
+    document.getElementById('gh-token').value = savedToken || '';
+    
+    // Auto-hide the config bar if the token is already saved for a cleaner UI
+    if(savedToken) {
+      document.getElementById('configBar').style.display = 'none';
+    }
+
     await loadInitialData();
     initCalendar();
   });
@@ -105,7 +215,8 @@
     calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: 'dayGridMonth',
       selectable: true,
-      selectLongPressDelay: 0, // 🔥 FIXES MOBILE TOUCH INTERACTION
+      selectLongPressDelay: 0,
+      contentHeight: 'auto', // Prevents internal scrolling on mobile
       events: blockedEvents,
       headerToolbar: {
         left: 'prev,next today',
@@ -118,16 +229,14 @@
         document.getElementById('bookingModal').style.display = 'flex';
       },
       eventClick: async function(info) {
-        // Find all events sharing the exact same timeframe to drop interlocked sets together
         if (confirm(`Remove block for "${info.event.title}" on this date range?`)) {
           const startStr = info.event.startStr;
           const endStr = info.event.endStr;
           
-          // Clear all events matching this timeline slot to clean out group logic dependencies easily
           blockedEvents = blockedEvents.filter(e => !(e.start === startStr && e.end === endStr));
           
           await pushToGitHub(blockedEvents);
-          location.reload(); // Refresh viewport state explicitly
+          location.reload(); 
         }
       }
     });
@@ -153,29 +262,27 @@
     
     let newBlocks = [];
 
-    // 🔥 AUTOMATED GROUP BLOCKING LOGIC LAWS
+    // Abbreviated titles so they fit perfectly on a phone screen
     if (selectedRoom === "Full Bungalow") {
-      // Rule 1: Full Bungalow blocks EVERYTHING
       newBlocks = [
         { title: "Full Bungalow", start, end, allDay: true, className: "room-full" },
-        { title: "Room 2", start, end, allDay: true, className: "room-2" },
-        { title: "Room 3", start, end, allDay: true, className: "room-3" },
-        { title: "Room 4", start, end, allDay: true, className: "room-4" }
+        { title: "Rm 2 (Locked)", start, end, allDay: true, className: "room-2" },
+        { title: "Rm 3 (Locked)", start, end, allDay: true, className: "room-3" },
+        { title: "Rm 4 (Locked)", start, end, allDay: true, className: "room-4" }
       ];
     } else {
-      // Rule 2: Individual room block also flags Full Bungalow as unavailable
+      const shortRoom = selectedRoom.replace('Room', 'Rm');
       newBlocks = [
         { title: selectedRoom, start, end, allDay: true, className: getClassName(selectedRoom) },
-        { title: `Full Bungalow (${selectedRoom} Booked)`, start, end, allDay: true, className: "room-full" }
+        { title: `Full (${shortRoom})`, start, end, allDay: true, className: "room-full" }
       ];
     }
 
-    // Merge new block clusters into state stack
     blockedEvents.push(...newBlocks);
     
     closeModal();
     await pushToGitHub(blockedEvents);
-    location.reload(); // Hard refresh viewport to show everything accurately
+    location.reload(); 
   }
 
   async function pushToGitHub(dataObject) {
@@ -208,9 +315,7 @@
       body: JSON.stringify(payload)
     });
 
-    if (res.ok) {
-      alert('Dates locked into repository database successfully! Remember it takes about 15 seconds to sync completely.');
-    } else {
+    if (!res.ok) {
       alert('Error saving data. Double check token permissions.');
     }
   }

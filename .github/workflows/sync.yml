@@ -6,6 +6,10 @@ on:
       - 'blocked-dates.json'
   workflow_dispatch:
 
+# 🔑 FIX 1: Explicitly grant write access so the bot is allowed to push the .ics files back to your repo
+permissions:
+  contents: write
+
 jobs:
   generate-feeds:
     runs-on: ubuntu-latest
@@ -33,7 +37,6 @@ jobs:
           def generate_ics(events, filename):
               ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Bungalow Manager//EN"]
               for i, e in enumerate(events):
-                  # Format dates cleanly for the iCal standard
                   s = e["start"].replace("-", "")
                   d = e["end"].replace("-", "")
                   ics.append("BEGIN:VEVENT")
@@ -47,11 +50,21 @@ jobs:
               with open(filename, "w") as f:
                   f.write("\n".join(ics))
 
-          # Filter data segments using the UI CSS class names
-          generate_ics([e for e in data if e.get("className") == "room-2"], "room2.ics")
-          generate_ics([e for e in data if e.get("className") == "room-3"], "room3.ics")
-          generate_ics([e for e in data if e.get("className") == "room-4"], "room4.ics")
-          generate_ics([e for e in data if e.get("className") == "room-full"], "bungalow.ics")
+          # 🔑 FIX 2: Robust matching logic to catch rooms by both title text and class parameters
+          def is_room(event, room_num):
+              title = event.get("title", "")
+              c_name = str(event.get("className", ""))
+              return f"Room {room_num}" in title or f"Rm {room_num}" in title or f"room-{room_num}" in c_name
+
+          def is_full(event):
+              title = event.get("title", "")
+              c_name = str(event.get("className", ""))
+              return "Full" in title or "room-full" in c_name
+
+          generate_ics([e for e in data if is_room(e, 2)], "room2.ics")
+          generate_ics([e for e in data if is_room(e, 3)], "room3.ics")
+          generate_ics([e for e in data if is_room(e, 4)], "room4.ics")
+          generate_ics([e for e in data if is_full(e)], "bungalow.ics")
           '
 
       - name: Commit and Push Clean Channels

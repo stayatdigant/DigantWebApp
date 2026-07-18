@@ -91,31 +91,50 @@
     calendar.render();
   }
 
-  async function pushToGitHub(dataObject) {
-    const token = localStorage.getItem('gh_token');
-    if (!token) return alert('Please enter and save your GitHub token first!');
+async function pushToGitHub(dataObject) {
+  const token = localStorage.getItem('gh_token');
+  if (!token) return alert('Please enter and save your GitHub token first!');
 
-    const contentBase64 = btoa(JSON.stringify(dataObject, null, 2));
-    const payload = {
-      message: "Calendar state updated via unified UI",
-      content: contentBase64,
-      sha: currentSha || undefined
-    };
-
-    const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${FILE_PATH}`, {
-      method: 'PUT',
-      headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+  try {
+    // 1. FORCE FETCH THE ABSOLUTE LATEST VERSION (SHA) RIGHT BEFORE SAVING
+    // This stops the 409 conflict by ensuring we always have the current state
+    const cacheBuster = new Date().getTime();
+    const latestRes = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${FILE_PATH}?t=${cacheBuster}`, {
+      headers: { 'Authorization': `token ${token}` }
     });
-
-    if (res.ok) {
-      const resData = await res.json();
-      currentSha = resData.content.sha; // Update current file version pointer
-      alert('Dates locked into repository database successfully!');
-    } else {
-      alert('Error updating database. Verify your token permissions.');
+    
+    if (latestRes.ok) {
+      const latestData = await latestRes.json();
+      currentSha = latestData.sha; // Overwrite the stale SHA with the live one
     }
+  } catch (err) {
+    console.error("Failed to sync version pointer prior to saving:", err);
   }
+
+  // 2. PROCEED WITH THE SAVE PAYLOAD
+  const contentBase64 = btoa(JSON.stringify(dataObject, null, 2));
+  const payload = {
+    message: "Calendar state updated via unified UI",
+    content: contentBase64,
+    sha: currentSha || undefined
+  };
+
+  const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${FILE_PATH}`, {
+    method: 'PUT',
+    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  if (res.ok) {
+    const resData = await res.json();
+    currentSha = resData.content.sha; // Save the newly generated SHA for consecutive clicks
+    alert('Dates locked into repository database successfully!');
+  } else {
+    const errorDetails = await res.text();
+    console.error("Save failed:", errorDetails);
+    alert('Error updating database. Check developer console.');
+  }
+}
 </script>
 </body>
 </html>

@@ -42,19 +42,5 @@
     "end": "2026-07-09",
     "allDay": true,
     "className": "room-full"
-  },
-  {
-    "title": "Room 2",
-    "start": "2026-07-02",
-    "end": "2026-07-03",
-    "allDay": true,
-    "className": "room-2"
-  },
-  {
-    "title": "Full Bungalow (Room 2 Booked)",
-    "start": "2026-07-02",
-    "end": "2026-07-03",
-    "allDay": true,
-    "className": "room-full"
   }
 ]

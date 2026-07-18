@@ -4,5 +4,11 @@
     "start": "2026-07-10",
     "end": "2026-07-11",
     "allDay": true
+  },
+  {
+    "title": "Blocked Date",
+    "start": "2026-07-15",
+    "end": "2026-07-16",
+    "allDay": true
   }
 ]

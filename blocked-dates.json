@@ -26,5 +26,19 @@
     "end": "2026-07-26",
     "allDay": true,
     "className": "room-full"
+  },
+  {
+    "title": "Room 2",
+    "start": "2026-07-26",
+    "end": "2026-07-27",
+    "allDay": true,
+    "className": "room-2"
+  },
+  {
+    "title": "Full (Rm 2)",
+    "start": "2026-07-26",
+    "end": "2026-07-27",
+    "allDay": true,
+    "className": "room-full"
   }
 ]

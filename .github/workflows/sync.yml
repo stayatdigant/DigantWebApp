@@ -1,79 +1,63 @@
-name: Global Synchronization Pipeline
+name: Split Master Calendar Channels
+
 on:
   push:
     paths:
       - 'blocked-dates.json'
-  schedule:
-    - cron: '*/30 * * * *' # Backup polling loop every 30 mins
+  workflow_dispatch:
 
 jobs:
-  build-and-sync:
+  generate-feeds:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          python-version: '3.x'
 
-      - name: Initialize Node Environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Runtime Dependencies
+      - name: Process and Separate iCal Channels
         run: |
-          npm install ical-generator playwright
-          npx playwright install chromium --with-deps
+          python3 -c '
+          import json
+          from datetime import datetime
 
-      - name: Generate Global iCal File
-        run: |
-          node -e "
-          const fs = require('fs');
-          const ical = require('ical-generator').default;
-          const data = JSON.parse(fs.readFileSync('blocked-dates.json', 'utf8'));
-          const cal = ical({ name: 'Master Channel Feed' });
-          data.forEach(ev => {
-            cal.createEvent({ start: ev.start, end: ev.end, summary: ev.title, allDay: true });
-          });
-          fs.writeFileSync('calendar.ics', cal.toString());
-          "
+          try:
+              with open("blocked-dates.json", "r") as f:
+                  data = json.load(f)
+          except Exception:
+              data = []
 
-      - name: Host updated iCal on GitHub Pages
-        run: |
-          git config --global user.name "Automation Pipeline"
-          git config --global user.email "bot@github.com"
-          git add calendar.ics
-          git diff-index --quiet HEAD || git commit -m "Generated distribution iCal feed [skip ci]" && git push || true
+          def generate_ics(events, filename):
+              ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Bungalow Manager//EN"]
+              for i, e in enumerate(events):
+                  # Format dates cleanly for the iCal standard
+                  s = e["start"].replace("-", "")
+                  d = e["end"].replace("-", "")
+                  ics.append("BEGIN:VEVENT")
+                  ics.append(f"UID:{s}-{i}@bungalowmanager")
+                  ics.append(f"DTSTART;VALUE=DATE:{s}")
+                  ics.append(f"DTEND;VALUE=DATE:{d}")
+                  ics.append(f"SUMMARY:{e['title']}")
+                  ics.append("END:VEVENT")
+              ics.append("END:VCALENDAR")
+              
+              with open(filename, "w") as f:
+                  f.write("\n".join(ics))
 
-      - name: Run MakeMyTrip Browser Automation Block
-        env:
-          MMT_USER: ${{ secrets.MMT_USER }}
-          MMT_PASS: ${{ secrets.MMT_PASS }}
+          # Filter data segments using the UI CSS class names
+          generate_ics([e for e in data if e.get("className") == "room-2"], "room2.ics")
+          generate_ics([e for e in data if e.get("className") == "room-3"], "room3.ics")
+          generate_ics([e for e in data if e.get("className") == "room-4"], "room4.ics")
+          generate_ics([e for e in data if e.get("className") == "room-full"], "bungalow.ics")
+          '
+
+      - name: Commit and Push Clean Channels
         run: |
-          node -e "
-          const { chromium } = require('playwright');
-          const fs = require('fs');
-          
-          async function execute() {
-            const data = JSON.parse(fs.readFileSync('blocked-dates.json', 'utf8'));
-            if(data.length === 0) return;
-            
-            const browser = await chromium.launch({ headless: true });
-            const page = await browser.newPage();
-            
-            console.log('Logging into InGoMMT...');
-            await page.goto('https://partners.go-mmt.com/');
-            await page.fill('input[name=\"username\"]', process.env.MMT_USER);
-            await page.fill('input[name=\"password\"]', process.env.MMT_PASS);
-            await page.click('button[type=\"submit\"]');
-            await page.waitForNavigation();
-            
-            // Loop updates across recent targets
-            for(let block of data) {
-               console.log('Blocking dates on MMT:', block.start, 'to', block.end);
-               // Add tailored selector inputs matching your MMT portal layout here...
-            }
-            await browser.close();
-          }
-          execute().catch(err => { console.error(err); process.exit(1); });
-          "
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add room2.ics room3.ics room4.ics bungalow.ics
+          git diff --cached --quiet || git commit -m "Auto-split channel feeds [skip ci]"
+          git push

@@ -6,7 +6,6 @@ on:
       - 'blocked-dates.json'
   workflow_dispatch:
 
-# 🔑 FIX 1: Explicitly grant write access so the bot is allowed to push the .ics files back to your repo
 permissions:
   contents: write
 
@@ -24,9 +23,9 @@ jobs:
 
       - name: Process and Separate iCal Channels
         run: |
-          python3 -c '
+          # Write the code out into a clean file first to avoid terminal quote clashes completely
+          cat << 'EOF' > split_cal.py
           import json
-          from datetime import datetime
 
           try:
               with open("blocked-dates.json", "r") as f:
@@ -43,14 +42,13 @@ jobs:
                   ics.append(f"UID:{s}-{i}@bungalowmanager")
                   ics.append(f"DTSTART;VALUE=DATE:{s}")
                   ics.append(f"DTEND;VALUE=DATE:{d}")
-                  ics.append(f"SUMMARY:{e['title']}")
+                  ics.append(f"SUMMARY:{e.get('title', 'Blocked Slot')}")
                   ics.append("END:VEVENT")
               ics.append("END:VCALENDAR")
               
               with open(filename, "w") as f:
                   f.write("\n".join(ics))
 
-          # 🔑 FIX 2: Robust matching logic to catch rooms by both title text and class parameters
           def is_room(event, room_num):
               title = event.get("title", "")
               c_name = str(event.get("className", ""))
@@ -65,7 +63,10 @@ jobs:
           generate_ics([e for e in data if is_room(e, 3)], "room3.ics")
           generate_ics([e for e in data if is_room(e, 4)], "room4.ics")
           generate_ics([e for e in data if is_full(e)], "bungalow.ics")
-          '
+          EOF
+          
+          # Run the clean script file
+          python3 split_cal.py
 
       - name: Commit and Push Clean Channels
         run: |

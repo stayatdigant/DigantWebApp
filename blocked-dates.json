@@ -36,5 +36,19 @@
     "end": "2026-07-18",
     "allDay": true,
     "className": "room-full"
+  },
+  {
+    "title": "Room 4",
+    "start": "2026-07-02",
+    "end": "2026-07-12",
+    "allDay": true,
+    "className": "room-4"
+  },
+  {
+    "title": "Full Bungalow (Room 4 Booked)",
+    "start": "2026-07-02",
+    "end": "2026-07-12",
+    "allDay": true,
+    "className": "room-full"
   }
 ]

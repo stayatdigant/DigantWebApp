@@ -1,16 +1,1 @@
-[
-  {
-    "title": "Rm 2",
-    "start": "2026-08-01",
-    "end": "2026-08-02",
-    "allDay": true,
-    "className": "room-2"
-  },
-  {
-    "title": "Full (Rm 2)",
-    "start": "2026-08-01",
-    "end": "2026-08-02",
-    "allDay": true,
-    "className": "room-full"
-  }
-]
+[]

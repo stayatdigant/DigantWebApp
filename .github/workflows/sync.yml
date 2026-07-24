@@ -23,7 +23,6 @@ jobs:
 
       - name: Process and Separate iCal Channels
         run: |
-          # Write the code out into a clean file first to avoid terminal quote clashes completely
           cat << 'EOF' > split_cal.py
           import json
 
@@ -59,19 +58,22 @@ jobs:
               c_name = str(event.get("className", ""))
               return "Full" in title or "room-full" in c_name
 
+          # Individual Channels (For Airbnb)
           generate_ics([e for e in data if is_room(e, 2)], "room2.ics")
           generate_ics([e for e in data if is_room(e, 3)], "room3.ics")
           generate_ics([e for e in data if is_room(e, 4)], "room4.ics")
           generate_ics([e for e in data if is_full(e)], "bungalow.ics")
+
+          # 🔥 Combined Channel (For Booking.com's shared Room 2 & 4 listing)
+          generate_ics([e for e in data if is_room(e, 2) or is_room(e, 4)], "room2_4.ics")
           EOF
           
-          # Run the clean script file
           python3 split_cal.py
 
       - name: Commit and Push Clean Channels
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add room2.ics room3.ics room4.ics bungalow.ics
+          git add room2.ics room3.ics room4.ics bungalow.ics room2_4.ics
           git diff --cached --quiet || git commit -m "Auto-split channel feeds [skip ci]"
           git push

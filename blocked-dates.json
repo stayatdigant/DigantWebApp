@@ -152,33 +152,5 @@
     "end": "2026-08-26",
     "allDay": true,
     "className": "room-4"
-  },
-  {
-    "title": "Full Bungalow",
-    "start": "2026-08-07",
-    "end": "2026-08-30",
-    "allDay": true,
-    "className": "room-full"
-  },
-  {
-    "title": "Rm 2 (Locked)",
-    "start": "2026-08-07",
-    "end": "2026-08-30",
-    "allDay": true,
-    "className": "room-2"
-  },
-  {
-    "title": "Rm 3 (Locked)",
-    "start": "2026-08-07",
-    "end": "2026-08-30",
-    "allDay": true,
-    "className": "room-3"
-  },
-  {
-    "title": "Rm 4 (Locked)",
-    "start": "2026-08-07",
-    "end": "2026-08-30",
-    "allDay": true,
-    "className": "room-4"
   }
 ]
